@@ -15,13 +15,15 @@ import org.w3c.dom.NodeList;
  * @author Steven Honda
  *
  */
-public class GameObject {    //Need to do think(),  need to do doVerb().  Need to finish description and GameCommad
+public class GameObject {    //Need to do think(),  need to do doVerb().  Need to finish GameCommad
 	
 	List<GameObject> _inventoryList =  new ArrayList<GameObject>();
-	private String _name;
-	private String _description;
+	protected String _name;
+	protected String _description;
 	List<GameCommand> _verbs = new ArrayList<GameCommand>();
 	protected Node _XMLBlock;
+	protected String _status;
+	protected GameObject _location;
 	
 	public GameObject(Node XML){
 		_XMLBlock = XML.cloneNode(true);
@@ -29,12 +31,45 @@ public class GameObject {    //Need to do think(),  need to do doVerb().  Need t
 		_description = Client.getXMLElement(XML, "Description");
 		initialize();
 	}
+	public String setStatus(String state){
+		_status = state;
+		return _status;
+	}
+	public String getStatus(){
+		return _status;
+	}
 	public String name(){
 		return(_name);
 	}
 	public String description(){
-		//add stuff to check internal and makes changes
+		//get all possible descriptions for this object
+		NodeList _descriptions = Client.getXMLNodes(_XMLBlock, "Description");
+		if(isLit()){
+			for(int i = 0; i < _descriptions.getLength(); i++){
+				if(Client.getXMLElement(_descriptions.item(i), "Status") == "Lit") //need to do these as string compares
+					_description = _descriptions.item(i).getNodeValue();
+			}
+		}
+		else{
+			for(int i = 0; i < _descriptions.getLength(); i++){
+				if(Client.getXMLElement(_descriptions.item(i), "Status") == "")  //need to do these as strong compares
+					_description = _descriptions.item(i).getNodeValue();
+			}
+		}
 		return(_description);
+	}
+	protected boolean isLit(){
+		if(this._status == "Lit") // change to a String compare
+			return true;
+		
+		if(this != _location)
+			return _location.isLit();
+		GameObject entity = null;
+		for(Iterator<GameObject> i = _inventoryList.iterator(); i.hasNext(); entity = i.next()) {
+			if(entity != null && entity.isLit())  
+				return true;
+		}
+		return false;
 	}
 	public List<GameCommand> verbs(){
 		return(_verbs);
@@ -42,7 +77,7 @@ public class GameObject {    //Need to do think(),  need to do doVerb().  Need t
 	public List<GameObject> inventory(){
 		return(_inventoryList);
 	}
-	public String doVerb(String verb){
+	public String doVerb(String verb){ //checks to see if the verb received from getVerb is a legal action, and then perform that action
 		GameCommand _verb = getVerb(verb);
 		//come back to this
 	}
@@ -68,10 +103,10 @@ public class GameObject {    //Need to do think(),  need to do doVerb().  Need t
 		else
 			return false;
 	}
-	public GameCommand getVerb(String verb){
+	public GameCommand getVerb(String verb){  //finished just waiting for GameCommand,  converts the String inputed into a usable verb in the list
 		GameCommand gc;
 		for(Iterator<GameCommand> i = _verbs.iterator(); i.hasNext(); gc = i.next()) {// lives when done
-//			if()  GameCommand name or verbname and comparing it to String verb.  
+//			if()  GameCommand name or verbname and comparing it to String verb.  Checking to see if the verb is in the list of the GameObjects verbs.
 //				return gc;
 		}
 		return null;

@@ -47,10 +47,10 @@ public class Client {
 		return null;
 	}
 	public static String getXMLElement(Node XML, String tagName){
-		return getXMLNodes(XML, "Name").item(0).getFirstChild().getNodeValue();  //needs to be broken down and given try blocks		
+		return getXMLNodes(XML, tagName).item(0).getFirstChild().getNodeValue();  //needs to be broken down and given try blocks		
 	}
 	public static NodeList getXMLNodes(Node XML, String NodeType){
 		Element XMLData = (Element)XML;
-		return XMLData.getElementsByTagName("Name");  //needs a try catch
+		return XMLData.getElementsByTagName(NodeType);  //needs a try catch
 	}
 }
