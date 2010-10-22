@@ -20,10 +20,9 @@ public class CreatureObject extends MobileObject {
 			NodeList parsePath = Client.getXMLNodes(_XMLBlock, "Path");
 			if(parsePath != null && parsePath.getLength() > 0)
 				for(int i = 0; i < parsePath.getLength(); i++)
-//					_path.add(RoomObject(parsePath.item(i)));  need to find room objects and assign them  
+					_path.add(RoomObject.getRoom(parsePath.item(i).getTextContent()));  //find room objects and assign them  
 			return true;
 		}
-		else
 			return false;
 	}
 //	@Override

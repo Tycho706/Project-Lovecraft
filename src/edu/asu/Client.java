@@ -1,9 +1,6 @@
 package edu.asu;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -14,6 +11,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+
 public class Client {
 
 	/**
@@ -21,22 +19,24 @@ public class Client {
 	 */
 	public static void main(String[] args) {
 		//step 1: Load XML file
-		Document gameFile = parseXMLFile("Project Lovecraft");
+		Element gameFile = parseXMLFile("Project Lovecraft.xml");
 		//step 2: Run through the XML file, and Build the map
-		List<RoomObject> _map = new ArrayList<RoomObject>();
+		CharacterObject you;
 		NodeList parseRoom = Client.getXMLNodes(gameFile, "Room");
 		if(parseRoom != null && parseRoom.getLength() > 0)
-			for(int i = 0; i < parseRoom.getLength(); i++)
-				_map.add(new RoomObject(parseRoom.item(i)));
-
+			for(int i = 0; i < parseRoom.getLength(); i++){
+				System.out.print((i+1) + ": ");
+				RoomObject newR = new RoomObject(parseRoom.item(i));
+				System.out.println("");
+			}
 	}
-	public static Document parseXMLFile(String _fileName){
+	public static Element parseXMLFile(String _fileName){
 		Document dom;
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try{
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			dom = db.parse(_fileName);
-			return dom;
+			return dom.getDocumentElement();
 		} catch(ParserConfigurationException pce) {
 			pce.printStackTrace();
 		} catch(SAXException se){
@@ -47,10 +47,97 @@ public class Client {
 		return null;
 	}
 	public static String getXMLElement(Node XML, String tagName){
-		return getXMLNodes(XML, tagName).item(0).getFirstChild().getNodeValue();  //needs to be broken down and given try blocks		
+		NodeList nl = getXMLNodes(XML, tagName);
+		Element el;
+		if(nl == null || nl.getLength() == 0) // this would be odd 
+		{
+			el = (Element)XML;
+			return el.getAttribute(tagName);
+		}
+			//		if(getXMLNodes(XML, tagName).item(0).getFirstChild() == null) 
+//			return "";
+		el = (Element)getXMLNodes(XML, tagName).item(0);
+		
+		return el.getFirstChild().getNodeValue();  //needs to be broken down and given try blocks		
 	}
 	public static NodeList getXMLNodes(Node XML, String NodeType){
 		Element XMLData = (Element)XML;
 		return XMLData.getElementsByTagName(NodeType);  //needs a try catch
+	}
+	/**This method takes in the subject and object of a translated verb statement.  From there it
+	 * will perform the necessary steps needed to carry out that user inputed verb command.
+	 * @param gSubject
+	 * @param gObject
+	 * @param translation
+	 * @return
+	 * @author Steven Honda
+	 */
+	public static String doVerb(GameObject gSubject, GameObject gObject, String translation) {
+		String[] parsed = translation.split(" ");
+		if(parsed[0].equalsIgnoreCase("Go")){ // "Go @Exit", where @Exit is the name of a Exit
+			if(parsed.length < 2)
+				return "Go where?";
+			else {
+				RoomObject room = (RoomObject)gObject; // gObject had better be a room Object
+				ExitObject exit = room.getExit(parsed[1]);
+				if(exit == null || exit.destination() == null)
+					return "You can't go that way.";
+				else{
+					CreatureObject you = (CreatureObject)gSubject;
+					you.setLocation(exit.destination());
+					return "You go " + parsed[1] + ".";
+				}
+			}
+				
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Look")){ // "Look ...", a series of commands (see below)			
+			
+		}
+		else if(parsed[0].equalsIgnoreCase("Run")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Get")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Drop")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Put")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Give")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Use")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Attack")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Help")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Hint")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Options")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		else if(parsed[0].equalsIgnoreCase("Quit")){ // "Go @Exit", where @Exit is the name of a Exit
+			
+		}
+
+		return "Huh?";
 	}
 }
