@@ -9,7 +9,7 @@ import org.w3c.dom.NodeList;
 
 public class RoomObject extends GameObject { //needs to do description here
 
-
+	
 	static List<RoomObject> map = new ArrayList<RoomObject>();
 	public static RoomObject getRoom(String RoomName){
 		RoomObject room;
@@ -76,4 +76,25 @@ public class RoomObject extends GameObject { //needs to do description here
 		return _monsters;
 	}
 	//Will be doing an Override here to check for monsters and change the descriptions appropriately.
+	@Override
+	public String description(){
+		super.description();
+		String contents = "";
+		CreatureObject monster = null;
+		for(Iterator<CreatureObject> i 	= _monsters.iterator(); i.hasNext(); ){
+			 monster = i.next();
+			 if(monster != null && monster != CharacterObject.you)
+			 contents += monster.description() + "\n";
+		}
+		if(contents.length() > 0){
+			return contents;
+		}
+		ExitObject exit;
+		for(Iterator<ExitObject> i 	= _exits.iterator(); i.hasNext(); ){
+			 exit = i.next();
+			 
+			 contents += exit.description() + "\n";
+		}
+		return _description + "\n" + contents;
+	}
 }

@@ -34,6 +34,9 @@ public class GameObject {    //Need to do think(),  need to do doVerb().  Need t
 		_status = state;
 		return _status;
 	}
+	public GameObject location(){
+		return _location;
+	}
 	public String getStatus(){
 		return _status;
 	}
@@ -43,30 +46,34 @@ public class GameObject {    //Need to do think(),  need to do doVerb().  Need t
 	public String description(){
 		//get all possible descriptions for this object
 		NodeList _descriptions = Client.getXMLNodes(_XMLBlock, "Description");
-		if(isLit()){
-			for(int i = 0; i < _descriptions.getLength(); i++){
-				if(Client.getXMLElement(_descriptions.item(i), "Status").equalsIgnoreCase("lit"))
-					_description = _descriptions.item(i).getNodeValue();
+		String StatusTag = "";
+		if(isLit())
+			StatusTag = "Lit";
+		
+		for(int i = 0; i < _descriptions.getLength(); i++){
+			if(Client.getXMLElement(_descriptions.item(i), "Status").equalsIgnoreCase(StatusTag)) {
+				Node n = _descriptions.item(i);
+				_description = n.getFirstChild().getNodeValue();
 			}
-		}
-		else{
-			for(int i = 0; i < _descriptions.getLength(); i++){
-				if(Client.getXMLElement(_descriptions.item(i), "Status").equalsIgnoreCase("")) 
-					_description = _descriptions.item(i).getNodeValue();
-			}
+			
 		}
 		return(_description);
 	}
-	protected boolean isLit(){
-		if(this._status.equalsIgnoreCase("Lit")) 
+	protected boolean isLight(){
+		if(this._status != null && this._status.equalsIgnoreCase("Lit")) 
 			return true;
+		return false;
+	}
+	protected boolean isLit(){
+			if(this.isLight())
+				return true;
 		
 		if(this != _location)
 			return _location.isLit();
 		GameObject entity = null;
 		for(Iterator<GameObject> i = _inventoryList.iterator(); i.hasNext(); ){
 			 entity = i.next();
-			if(entity != null && entity.isLit())  
+			if(entity != null && entity != this && entity.isLight())  
 				return true;
 		}
 		return false;

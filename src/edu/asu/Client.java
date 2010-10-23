@@ -1,10 +1,14 @@
 package edu.asu;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
+import java.util.Scanner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -18,17 +22,44 @@ public class Client {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		String input;
 		//step 1: Load XML file
 		Element gameFile = parseXMLFile("Project Lovecraft.xml");
 		//step 2: Run through the XML file, and Build the map
-		CharacterObject you;
 		NodeList parseRoom = Client.getXMLNodes(gameFile, "Room");
 		if(parseRoom != null && parseRoom.getLength() > 0)
 			for(int i = 0; i < parseRoom.getLength(); i++){
 				System.out.print((i+1) + ": ");
-				RoomObject newR = new RoomObject(parseRoom.item(i));
+				new RoomObject(parseRoom.item(i));
 				System.out.println("");
 			}
+		Scanner scan = new Scanner(System.in);
+		FileOutputStream logger;
+		PrintStream logged;
+		try {
+				logger = new FileOutputStream("gamelog.txt");
+				logged = new PrintStream(logger);
+		} catch (FileNotFoundException e) {
+				System.err.println("file could not be read for some reason");
+				e.printStackTrace();
+				return;
+		}
+		Date now = new Date();
+		logged.println("==========| " + now.toString() + " |==========");
+		System.out.println(CharacterObject.you.location().description());
+		do {
+			System.out.println(CharacterObject.you.location().name() + ">");
+			input = scan.nextLine();
+			logged.println(input);
+			System.out.println(CharacterObject.you.doVerb(null, input));
+		} while(!input.equalsIgnoreCase("Quit"));
+		try {
+			logger.close();
+		} catch (IOException e) {
+			System.err.println("Something went wrong.");   //change that message
+			e.printStackTrace();
+			return;
+		}
 	}
 	public static Element parseXMLFile(String _fileName){
 		Document dom;
@@ -49,13 +80,11 @@ public class Client {
 	public static String getXMLElement(Node XML, String tagName){
 		NodeList nl = getXMLNodes(XML, tagName);
 		Element el;
-		if(nl == null || nl.getLength() == 0) // this would be odd 
+		if(nl == null || nl.getLength() == 0) // If the node has no contents return its attribute value instead
 		{
 			el = (Element)XML;
 			return el.getAttribute(tagName);
 		}
-			//		if(getXMLNodes(XML, tagName).item(0).getFirstChild() == null) 
-//			return "";
 		el = (Element)getXMLNodes(XML, tagName).item(0);
 		
 		return el.getFirstChild().getNodeValue();  //needs to be broken down and given try blocks		
@@ -85,7 +114,7 @@ public class Client {
 				else{
 					CreatureObject you = (CreatureObject)gSubject;
 					you.setLocation(exit.destination());
-					return "You go " + parsed[1] + ".";
+					return "You go " + parsed[1] + ".\n" + exit.destination().description() + "\n";
 				}
 			}
 				
@@ -135,7 +164,7 @@ public class Client {
 		}
 
 		else if(parsed[0].equalsIgnoreCase("Quit")){ // "Go @Exit", where @Exit is the name of a Exit
-			
+			return "Goodbye!";
 		}
 
 		return "Huh?";

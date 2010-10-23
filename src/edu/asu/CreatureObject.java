@@ -7,6 +7,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class CreatureObject extends MobileObject {
+	ItemObject _equipped;
 	List<RoomObject> _pathback = new ArrayList<RoomObject>();
 	protected CreatureObject _target;
 	public CreatureObject(Node XML) {

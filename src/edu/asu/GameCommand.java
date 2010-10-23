@@ -26,6 +26,6 @@ public class GameCommand {
 		return _verb;
 	}
 	public String getTranslation(String input){
-		return _translation;
+		return input;
 	}
 }
