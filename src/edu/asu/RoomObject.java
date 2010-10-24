@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class RoomObject extends GameObject { //needs to do description here
 
@@ -20,8 +19,7 @@ public class RoomObject extends GameObject { //needs to do description here
 		}
 		return null;
 	}
-	ArrayList<ExitObject> _exits;
-	ArrayList<CreatureObject> _monsters;
+	
 	public RoomObject(Node XML) {
 		super(XML);
 		map.add(this);
@@ -30,71 +28,37 @@ public class RoomObject extends GameObject { //needs to do description here
 	protected boolean initialize(){
 		if(super.initialize()){
 			_location = this;
-			_exits = new ArrayList<ExitObject>();
-			_monsters = new ArrayList<CreatureObject>();
-			NodeList parseInventory = Client.getXMLNodes(_XMLBlock, "Character");
-			if(parseInventory != null && parseInventory.getLength() > 0)
-				for(int i = 0; i < parseInventory.getLength(); i++) {
-					CharacterObject m = new CharacterObject(parseInventory.item(i));
-					m.setLocation(this);
-					_monsters.add(m);
-				}
-			parseInventory = Client.getXMLNodes(_XMLBlock, "Monster");
-			if(parseInventory != null && parseInventory.getLength() > 0)
-				for(int i = 0; i < parseInventory.getLength(); i++) {
-					MonsterObject m = new MonsterObject(parseInventory.item(i));
-					m.setLocation(this);
-					_monsters.add(m);
-				}
-			parseInventory = Client.getXMLNodes(_XMLBlock, "Exit");
-			if(parseInventory != null && parseInventory.getLength() > 0)
-				for(int i = 0; i < parseInventory.getLength(); i++) {
-					ExitObject e = new ExitObject(parseInventory.item(i));
-					e.setLocation(this);
-					_exits.add(e);
-					
-				}
 			return true;
 		}
 		else
 			return false;
 	}
-	public ArrayList<ExitObject> exits(){
-		return _exits;
-	}
-	
-	public ExitObject getExit(String name){
-		ExitObject exit;
-		for(Iterator<ExitObject> i = _exits.iterator(); i.hasNext(); ) { 
-			exit = i.next();
-			if(exit.name().equalsIgnoreCase(name))
-				return exit;
-		}
-		return null;
-	}
-	public ArrayList<CreatureObject> creatures(){
-		return _monsters;
-	}
 	//Will be doing an Override here to check for monsters and change the descriptions appropriately.
 	@Override
-	public String description(){
-		super.description();
+	public String description(String input){
+		super.description(input);
 		String contents = "";
 		CreatureObject monster = null;
-		for(Iterator<CreatureObject> i 	= _monsters.iterator(); i.hasNext(); ){
+		for(Iterator<CreatureObject> i 	= creatures().iterator(); i.hasNext(); ){
 			 monster = i.next();
-			 if(monster != null && monster != CharacterObject.you)
-			 contents += monster.description() + "\n";
+			 if(monster != null && monster != CharacterObject.you && !"Dead".equalsIgnoreCase(monster.getStatus()))
+				 contents += monster.description(input) + "\n";
 		}
 		if(contents.length() > 0){
 			return contents;
 		}
-		ExitObject exit;
-		for(Iterator<ExitObject> i 	= _exits.iterator(); i.hasNext(); ){
-			 exit = i.next();
-			 
-			 contents += exit.description() + "\n";
+		GameObject e;
+		for(Iterator<GameObject> i 	= _inventoryList.iterator(); i.hasNext(); ){
+			 e = i.next();
+			 if(e.description(input).length() > 0)
+			 {
+				 if(e instanceof ExitObject)
+					 contents += e.description(input) + "\n";
+				 else
+					 contents += e.description(null) + "\n";
+			 }
 		}
+
 		return _description + "\n" + contents;
 	}
 }

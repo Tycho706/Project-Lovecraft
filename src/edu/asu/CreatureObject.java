@@ -26,8 +26,9 @@ public class CreatureObject extends MobileObject {
 		}
 			return false;
 	}
-//	@Override
-//	protected String think(){
-		
-//	}
+	
+
+	protected String think(){
+		return "";
+	}
 }

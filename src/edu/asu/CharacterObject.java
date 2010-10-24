@@ -1,5 +1,7 @@
 package edu.asu;
 
+import java.util.Iterator;
+
 import org.w3c.dom.Node;
 
 public class CharacterObject extends CreatureObject {
@@ -23,10 +25,18 @@ public class CharacterObject extends CreatureObject {
 		if(verb != null){
 			return _location.doVerb(this, input);//return Client.doVerb(equipped(), this, verb.getTranslation(input));
 		}
+		ItemObject item;
+		for(Iterator<ItemObject> i 	= _location.items().iterator(); i.hasNext(); ){
+			 item = i.next();
+			 verb = item.getVerb(input);
+			 if(verb != null)
+				 return item.doVerb(this, input);
+		}
 		verb = this.getVerb(input);
 		if(verb == null)
 		{
-			return "I don't understand.";
+			return "I don't understand \"" + input + "\"." ;
+
 		}
 		else {
 			return Client.doVerb(subject, this, verb.getTranslation(input));  // in this case the character is the object not the subject
@@ -36,8 +46,19 @@ public class CharacterObject extends CreatureObject {
 		return _equipped;
 	}
 	public boolean equip(ItemObject equipment){
+		if(equipment == null) {
+			_equipped = null;
+			return false;
+		}
 		equipment.setLocation(this);
 		_equipped = equipment;
 		return true;
+	}
+	
+	@Override
+	public boolean isLight(){
+		if(equipped() != null)
+			return equipped().isLight();
+		return false;
 	}
 }

@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
+import java.util.Iterator;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,7 +39,7 @@ public class Client {
 		FileOutputStream logger;
 		PrintStream logged;
 		try {
-				logger = new FileOutputStream("gamelog.txt");
+				logger = new FileOutputStream("gamelog.txt", true);
 				logged = new PrintStream(logger);
 		} catch (FileNotFoundException e) {
 				System.err.println("file could not be read for some reason");
@@ -45,10 +47,26 @@ public class Client {
 				return;
 		}
 		Date now = new Date();
+		GameObject room = null;
 		logged.println("==========| " + now.toString() + " |==========");
-		System.out.println(CharacterObject.you.location().description());
 		do {
-			System.out.println(CharacterObject.you.location().name() + ">");
+			if(CharacterObject.you.location().equals(room)) {
+				CreatureObject monster;
+				for(Iterator<CreatureObject> i 	= room.creatures().iterator(); i.hasNext(); ){
+					monster = i.next();
+					System.out.print(monster.think());
+				}
+			}
+			else {
+				room = CharacterObject.you.location();
+				System.out.println(room.description(null));
+				if(CharacterObject.you.equipped() != null)
+					System.out.println("You are holding a " + CharacterObject.you.equipped().name());
+			}
+			if("Dead".equalsIgnoreCase(CharacterObject.you.getStatus()))
+				System.out.println("Dead>");
+			else
+				System.out.println(CharacterObject.you.location().name() + ">");
 			input = scan.nextLine();
 			logged.println(input);
 			System.out.println(CharacterObject.you.doVerb(null, input));
@@ -80,14 +98,19 @@ public class Client {
 	public static String getXMLElement(Node XML, String tagName){
 		NodeList nl = getXMLNodes(XML, tagName);
 		Element el;
-		if(nl == null || nl.getLength() == 0) // If the node has no contents return its attribute value instead
+		if(nl == null || nl.getLength() == 0 ) // If the node has no contents return its attribute value instead
 		{
 			el = (Element)XML;
 			return el.getAttribute(tagName);
 		}
-		el = (Element)getXMLNodes(XML, tagName).item(0);
-		
-		return el.getFirstChild().getNodeValue();  //needs to be broken down and given try blocks		
+		for(int i = 0; i < nl.getLength(); i++)
+		{  //needs to be broken down and given try blocks		
+			
+			el = (Element)getXMLNodes(XML, tagName).item(i);
+			if(XML.equals(el.getParentNode()))
+					return el.getFirstChild().getNodeValue(); // found one!
+		}
+		return ""; 
 	}
 	public static NodeList getXMLNodes(Node XML, String NodeType){
 		Element XMLData = (Element)XML;
@@ -102,8 +125,25 @@ public class Client {
 	 * @author Steven Honda
 	 */
 	public static String doVerb(GameObject gSubject, GameObject gObject, String translation) {
+		CharacterObject gActor;
+		GameObject target;
 		String[] parsed = translation.split(" ");
-		if(parsed[0].equalsIgnoreCase("Go")){ // "Go @Exit", where @Exit is the name of a Exit
+		
+/*		DEBUG PRINT
+ 		if(gObject == null)
+			System.out.println(gSubject.name() + ":" + translation);
+		else if(gSubject == null)
+			System.out.println("??->" + gObject.name() + ":" + translation);
+		else
+			System.out.println(gSubject.name() + "->" + gObject.name() + ":" + translation);
+*/	
+		if(parsed[0].equalsIgnoreCase("Quit")){ // "Go @Exit", where @Exit is the name of a Exit
+			return "Goodbye!";
+		}
+		else if(CharacterObject.you.getStatus().equalsIgnoreCase("Dead")){
+			return "You are dead.  Unless you want to be a zombie, stop trying to move.";
+		}
+		else if(parsed[0].equalsIgnoreCase("Go")){ // "Go @Exit", where @Exit is the name of a Exit
 			if(parsed.length < 2)
 				return "Go where?";
 			else {
@@ -114,59 +154,132 @@ public class Client {
 				else{
 					CreatureObject you = (CreatureObject)gSubject;
 					you.setLocation(exit.destination());
-					return "You go " + parsed[1] + ".\n" + exit.destination().description() + "\n";
+					String response = "You go " + parsed[1] + ".\n";
+					return response;
+				}
+			}		
+		}
+		else if(parsed[0].equalsIgnoreCase("Look")){ // "Look ...", a series of commands (see below)			
+			if(gSubject instanceof CharacterObject)
+				gActor = (CharacterObject)gSubject;
+			else if(gObject instanceof CharacterObject)
+				gActor = (CharacterObject)gObject;
+			else
+				return "You have no eyes!!!";
+			if(parsed.length < 2)
+				return gActor.location().description("Look");
+			else if(parsed.length == 2){ //Look @Exit
+				RoomObject room = (RoomObject)gObject; // gObject had better be a room Object
+				ExitObject exit = room.getExit(parsed[1]);
+				if(exit == null || exit.destination() == null)
+					return "There is nothing in that direction.";
+				else{
+					return exit.destination().description(null);
 				}
 			}
+			else if(parsed.length == 3){ // Look at @Item
+				ItemObject item = (ItemObject)gObject;
+				return item.description("Look");
+			}
+			else
+				return "What are you trying to look at?";
+		}
+		else if(parsed[0].equalsIgnoreCase("Take")){ // "Take @Item", where @Exit is the name of a Exit
+			if(parsed.length < 2)
+				return "Take what?";		
+			else {
+				if(gSubject instanceof CharacterObject)
+					gActor = (CharacterObject)gSubject;
+				else if(gObject instanceof CharacterObject)
+					gActor = (CharacterObject)gObject;
+				else{
+					return "You have no hands!!!";
+				}	
+				if(gActor.equipped() != null)
+					return "Put down the " + gActor.equipped().name() + " first.";
 				
-		}
-
-		else if(parsed[0].equalsIgnoreCase("Look")){ // "Look ...", a series of commands (see below)			
-			
-		}
-		else if(parsed[0].equalsIgnoreCase("Run")){ // "Go @Exit", where @Exit is the name of a Exit
-			
-		}
-
-		else if(parsed[0].equalsIgnoreCase("Get")){ // "Go @Exit", where @Exit is the name of a Exit
-			
+				if(gObject instanceof RoomObject && gObject.getContents(parsed[1]) != null)
+					target = gObject.getContents(parsed[1]);
+				else if(parsed[1].equalsIgnoreCase(gObject.name())){
+					target = gObject;
+				} else {
+					target = gSubject.getContents(parsed[1]);
+				}
+				if(target == null)
+					return "I don't see that here.";
+				else if(target instanceof ItemObject) 
+					gActor.equip((ItemObject)target);
+				else
+					return "You can't take that.";
+				return "You get a " + target.name();
+			}
 		}
 
 		else if(parsed[0].equalsIgnoreCase("Drop")){ // "Go @Exit", where @Exit is the name of a Exit
-			
+			if(parsed.length < 2)
+				return "Drop what?";
+			else{
+				if(gSubject instanceof CharacterObject)
+					gActor = (CharacterObject)gSubject;
+				else
+					return "But you have no hands!!!";
+				target = gActor.getContents(parsed[1]);
+				if(target == null)
+					return "You don't have a " + parsed[1];
+				if(target.equals(gActor.equipped()))
+				{
+					gActor.equip(null);
+				}
+				target.setLocation(gActor.location());
+				return "You put down the " + target.name();
+			}
 		}
-
-		else if(parsed[0].equalsIgnoreCase("Put")){ // "Go @Exit", where @Exit is the name of a Exit
-			
-		}
-
-		else if(parsed[0].equalsIgnoreCase("Give")){ // "Go @Exit", where @Exit is the name of a Exit
-			
-		}
-
-		else if(parsed[0].equalsIgnoreCase("Use")){ // "Go @Exit", where @Exit is the name of a Exit
-			
-		}
-
 		else if(parsed[0].equalsIgnoreCase("Attack")){ // "Go @Exit", where @Exit is the name of a Exit
+			if(gSubject instanceof CharacterObject)
+				gActor = (CharacterObject)gSubject;
+			else if(gObject instanceof CharacterObject)
+				gActor = (CharacterObject)gObject;
+			else{
+				return "You have no hands!!!";
+			}	
+			if(parsed.length < 2){
+				target = null;
+				for(Iterator<CreatureObject> i = gActor.location().creatures().iterator(); i.hasNext() && target == null; ){
+					CreatureObject monster = i.next();
+					if(monster instanceof MonsterObject)
+						target = monster;
+				}
+			}
+			else if(parsed.length == 2)
+				target = gActor.location().getContents(parsed[1]);
+			else
+				return "Attack what, exactly?  The darkness?";
 			
+			if(target == null)
+				return "Attacking imaginary enemies already? The hallucinations must be starting early... how long HAVE you been down here?";
+			if(target instanceof MonsterObject){
+				if(target.getStatus().equalsIgnoreCase("Dead"))
+					return "You mercilessly pummel the corpse of a " + target.name() + ". It appears to be quite dead.";
+				else{
+					target.setStatus("Dead");
+					return "You swing your " + gActor.equipped().name() + " at the " + target.name() + ", killing it in one blow.";
+				}
+			}
+			else
+				return "You attack the " + target.name() + ". It doesn't actually DO anything, but you feel better.";
+				
 		}
 
-		else if(parsed[0].equalsIgnoreCase("Help")){ // "Go @Exit", where @Exit is the name of a Exit
-			
+		else if(parsed[0].equalsIgnoreCase("Help")) { // "Go @Exit", where @Exit is the name of a Exit
+			if(gSubject instanceof CharacterObject)
+				gActor = (CharacterObject)gSubject;
+			else if(gObject instanceof CharacterObject)
+				gActor = (CharacterObject)gObject;
+			else
+				return "THERE IS NO HELP!!!";
+			return gActor.location().description("Help");
 		}
-
-		else if(parsed[0].equalsIgnoreCase("Hint")){ // "Go @Exit", where @Exit is the name of a Exit
-			
-		}
-
-		else if(parsed[0].equalsIgnoreCase("Options")){ // "Go @Exit", where @Exit is the name of a Exit
-			
-		}
-
-		else if(parsed[0].equalsIgnoreCase("Quit")){ // "Go @Exit", where @Exit is the name of a Exit
-			return "Goodbye!";
-		}
-
+		else 
 		return "Huh?";
 	}
 }
