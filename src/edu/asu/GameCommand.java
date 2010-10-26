@@ -1,17 +1,35 @@
 package edu.asu;
 
 import org.w3c.dom.Node;
-
+/**
+ * This class handles takes the user input and decides if that command is a valid command for 
+ * the game to handle.
+ * @author Steven Honda
+ *
+ */
 public class GameCommand {
 	private String _verb;
 	private String[] _parsedVerb;
 	private String _name;
+	/**
+	 * This method sets what the verb and split the input into it's constituent parts, 
+	 * separated by the spaces.
+	 * @param XML
+	 * @param MyName
+	 * @author Steven Honda
+	 */
 	public GameCommand(Node XML, String MyName){
 		_verb = Client.getXMLElement(XML, "Verb");
 		_name = MyName;
 		_parsedVerb = _verb.split(" ");
 		Client.getXMLElement(XML, "Do");
 	}
+	/**
+	 * This method checks the inputted verb, that must be the first word in the inputed sentence, 
+	 * against the list of allowed words for a GameObject as defined in the XML document. 
+	 * @param input
+	 * @return boolean
+	 */
 	public boolean matches(String input){
 		String[] _parsedInput = input.split(" ");
 		if(_parsedInput.length == _parsedVerb.length) {

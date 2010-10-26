@@ -3,14 +3,32 @@ package edu.asu;
 import java.util.Iterator;
 
 import org.w3c.dom.Node;
-
+/**
+ * This class handles the character's interaction with the game-state.  It also has a pointer to
+ * let the rest of the program call the character with.  It also handles the equipped item and
+ * whether or not the item is a light source.
+ * @author Steven Honda
+ *
+ */
 public class CharacterObject extends CreatureObject {
 
-	static CharacterObject you;
+	static CharacterObject you;  //a pointer to let the game know where the character object is
+	/**
+	 * This method initializes the pointer that represents the character in the map.
+	 * @param XML
+	 */
 	public CharacterObject(Node XML) {
 		super(XML);
 		you = this;
 	}
+	/**
+	 * This method checks through the list of ItemObjects in the rooms inventory and makes sure
+	 * the inputed verb command is valid for that object.  Typically this if for taking an item,
+	 * equipping an item and attacking with an item.
+	 * @param subject
+	 * @param input
+	 * @author Steven Honda
+	 */
 	@Override
 	public String doVerb(GameObject subject, String input){
 		GameCommand verb;
@@ -42,9 +60,19 @@ public class CharacterObject extends CreatureObject {
 			return Client.doVerb(subject, this, verb.getTranslation(input));  // in this case the character is the object not the subject
 		}
 	}
+	/**
+	 * This method returns whatever the equipped ItemObject is.
+	 * @return the equipped ItemObject
+	 * @author Steven Honda
+	 */
 	public ItemObject equipped(){
 		return _equipped;
 	}
+	/**
+	 * This method equips the ItemObject that it is being passed.
+	 * @param equipment
+	 * @return boolean
+	 */
 	public boolean equip(ItemObject equipment){
 		if(equipment == null) {
 			_equipped = null;
@@ -54,7 +82,10 @@ public class CharacterObject extends CreatureObject {
 		_equipped = equipment;
 		return true;
 	}
-	
+	/**
+	 * This method checks to see if equipped item is a light source.
+	 * @return boolean
+	 */
 	@Override
 	public boolean isLight(){
 		if(equipped() != null)

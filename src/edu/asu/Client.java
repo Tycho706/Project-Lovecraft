@@ -21,7 +21,12 @@ import org.xml.sax.SAXException;
 public class Client {
 
 	/**
+	 * This is the main for the program.  It calls the XML parser and the methods of the other classes
+	 * to render the map for the game.  It also accepts input from the user and prints descriptions of
+	 * the game-state to the console.
+	 * With some added things it now writes the users input to a text file. 
 	 * @param args
+	 * @author Steven Honda
 	 */
 	public static void main(String[] args) {
 		String input;
@@ -79,6 +84,12 @@ public class Client {
 			return;
 		}
 	}
+	/**
+	 * This class reads in the XML file and parses through the document to set up the information for
+	 * being pulled later.
+	 * @param _fileName
+	 * @author Steven Honda
+	 */
 	public static Element parseXMLFile(String _fileName){
 		Document dom;
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -95,6 +106,13 @@ public class Client {
 		}
 		return null;
 	}
+	/**
+	 * This method goes through an XML node to pull the element information or the attribute
+	 * Information for the tag name that is passed to this method.
+	 * @param XML
+	 * @param tagName
+	 * @author Steven Honda
+	 */
 	public static String getXMLElement(Node XML, String tagName){
 		NodeList nl = getXMLNodes(XML, tagName);
 		Element el;
@@ -112,16 +130,22 @@ public class Client {
 		}
 		return ""; 
 	}
+	/**
+	 * This method is called when something needs to be pulled from the parsed XML file.  
+	 * It returns the node that is the String that is being passed to this method.
+	 * @param XML
+	 * @param NodeType
+	 * @author Steven Honda
+	 */
 	public static NodeList getXMLNodes(Node XML, String NodeType){
 		Element XMLData = (Element)XML;
-		return XMLData.getElementsByTagName(NodeType);  //needs a try catch
+		return XMLData.getElementsByTagName(NodeType); 
 	}
 	/**This method takes in the subject and object of a translated verb statement.  From there it
 	 * will perform the necessary steps needed to carry out that user inputed verb command.
 	 * @param gSubject
 	 * @param gObject
 	 * @param translation
-	 * @return
 	 * @author Steven Honda
 	 */
 	public static String doVerb(GameObject gSubject, GameObject gObject, String translation) {
@@ -137,7 +161,7 @@ public class Client {
 		else
 			System.out.println(gSubject.name() + "->" + gObject.name() + ":" + translation);
 */	
-		if(parsed[0].equalsIgnoreCase("Quit")){ // "Go @Exit", where @Exit is the name of a Exit
+		if(parsed[0].equalsIgnoreCase("Quit")){ // "Quit", ends the game and terminates the program
 			return "Goodbye!";
 		}
 		else if(CharacterObject.you.getStatus().equalsIgnoreCase("Dead")){
@@ -184,7 +208,7 @@ public class Client {
 			else
 				return "What are you trying to look at?";
 		}
-		else if(parsed[0].equalsIgnoreCase("Take")){ // "Take @Item", where @Exit is the name of a Exit
+		else if(parsed[0].equalsIgnoreCase("Take")){ // "Take @Item", removes the declared item from a rooms inventory and puts it into the players inventory
 			if(parsed.length < 2)
 				return "Take what?";		
 			else {
@@ -215,7 +239,7 @@ public class Client {
 			}
 		}
 
-		else if(parsed[0].equalsIgnoreCase("Drop")){ // "Go @Exit", where @Exit is the name of a Exit
+		else if(parsed[0].equalsIgnoreCase("Drop")){ // "Drop @Item", Removes the declared item from the players inventory and puts it into the room's inventory
 			if(parsed.length < 2)
 				return "Drop what?";
 			else{
@@ -234,7 +258,7 @@ public class Client {
 				return "You put down the " + target.name();
 			}
 		}
-		else if(parsed[0].equalsIgnoreCase("Attack")){ // "Go @Exit", where @Exit is the name of a Exit
+		else if(parsed[0].equalsIgnoreCase("Attack")){ // "Attack" or "Attack @Monster, Useable only if a torch is the equipped item and will set the monster's status to dead
 			if(gSubject instanceof CharacterObject)
 				gActor = (CharacterObject)gSubject;
 			else if(gObject instanceof CharacterObject)
@@ -270,7 +294,7 @@ public class Client {
 				
 		}
 
-		else if(parsed[0].equalsIgnoreCase("Help")) { // "Go @Exit", where @Exit is the name of a Exit
+		else if(parsed[0].equalsIgnoreCase("Help")) { // "Help", will print a description of the room designed to provide helpful information to the player.  Note room must lit in order to get this description
 			if(gSubject instanceof CharacterObject)
 				gActor = (CharacterObject)gSubject;
 			else if(gObject instanceof CharacterObject)
