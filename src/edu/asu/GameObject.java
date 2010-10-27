@@ -31,7 +31,7 @@ public class GameObject {    //Need to do think(),  need to do doVerb().  Need t
 		_name = Client.getXMLElement(XML, "Name");
 		_description = Client.getXMLElement(XML, "Description");
 		setStatus(Client.getXMLElement(XML, "Status"));
-		System.out.print("Initializing a " + XML.getNodeName() + ":'" + _name + "'; ");
+//		System.out.print("Initializing a " + XML.getNodeName() + ":'" + _name + "'; ");
 		initialize();
 	}
 	public String setStatus(String state){
